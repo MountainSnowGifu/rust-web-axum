@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "todos-*"
+]
+resolver = "2"
