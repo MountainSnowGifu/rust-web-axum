@@ -8,7 +8,7 @@ use axum::{
 };
 
 use base64::engine::{general_purpose, Engine};
-use http::StatusCode;
+use http::{header::SET_COOKIE, HeaderMap, HeaderValue, StatusCode};
 use jwt::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
 
@@ -62,7 +62,17 @@ pub async fn login(req: Request<Body>) -> impl IntoResponse {
                 println!("Failed to decode token: {:?}", err);
             }
         }
-        (StatusCode::OK, "authenticated").into_response()
+
+        let test_str = format!("token={}; Path=/; SameSite=Strict; Max-Age=30", jwt);
+
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            SET_COOKIE,
+            //HeaderValue::from_static("key=value2; Path=/; SameSite=Strict; Max-Age=30"),
+            HeaderValue::from_str(&test_str).unwrap(),
+        );
+
+        (StatusCode::OK, headers, "authenticated").into_response()
     } else {
         let mut response = Response::new(Body::from("Unauthorized"));
         *response.status_mut() = StatusCode::UNAUTHORIZED;
@@ -102,7 +112,7 @@ pub struct Claims {
     exp: i64,
 }
 
-const JWT_ENCODING_KEY: &[u8; 13] = b"onekit_secret";
+pub const JWT_ENCODING_KEY: &[u8; 13] = b"onekit_secret";
 
 fn generate_jwt() -> anyhow::Result<String> {
     let exp = (chrono::Utc::now() + chrono::Duration::days(30)).timestamp();

@@ -13,6 +13,7 @@ todos-domain = { path = "../todos-domain" }
 tokio = { version = "1.38", features = ["full"] }
 anyhow = "1.0"
 axum = { version = "0.7", features = ["macros","ws"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter","json"] }
 tower-sessions = "0.12"

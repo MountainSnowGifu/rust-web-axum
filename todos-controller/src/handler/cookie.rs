@@ -5,8 +5,12 @@ use axum::{
     response::IntoResponse,
 };
 
+use axum_extra::{headers, TypedHeader};
+use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
 use serde::{Deserialize, Serialize};
 use tower_sessions::Session;
+
+use crate::authenticate::basic_authenticate::{Claims, JWT_ENCODING_KEY};
 const COUNTER_KEY: &str = "counter";
 
 #[derive(Default, Deserialize, Serialize)]
@@ -33,7 +37,28 @@ pub async fn handler(counter: Counter) -> impl IntoResponse {
     let mut headers = HeaderMap::new();
     headers.insert(
         SET_COOKIE,
-        HeaderValue::from_static("key=value2; Path=/; SameSite=Strict; Max-Age=300"),
+        HeaderValue::from_static("key=value2; Path=/; SameSite=Strict; Max-Age=30"),
     );
     (StatusCode::OK, headers, "クッキーが設定されました")
+}
+
+pub async fn get_cookie(TypedHeader(cookies): TypedHeader<headers::Cookie>) -> impl IntoResponse {
+    if let Some(cookie_value) = cookies.get("token") {
+        format!("クッキーの値: {}", cookie_value);
+
+        let decoding_key = DecodingKey::from_secret(JWT_ENCODING_KEY);
+        let validation = Validation::default();
+        match decode::<Claims>(&cookie_value, &decoding_key, &validation) {
+            Ok(TokenData { claims, .. }) => {
+                println!("Decoded claims: {:?}", claims);
+                format!("Decoded claims: {:?}", claims)
+            }
+            Err(err) => {
+                println!("Failed to decode token: {:?}", err);
+                format!("Failed to decode token: {:?}", err)
+            }
+        }
+    } else {
+        "クッキーが見つかりません".to_string()
+    }
 }

@@ -1,6 +1,7 @@
 use crate::{
     authenticate::basic_authenticate::{authenticate, login},
     handler::{
+        cookie::get_cookie,
         cookie::handler,
         health::health_check,
         request_id::{OneKitRequestId, ONE_KIT_REQUEST_ID},
@@ -23,11 +24,12 @@ pub async fn create_app(modules: Arc<Modules>, app_state: Arc<AppState>) {
     let session_store = MemoryStore::default();
     let session_layer = SessionManagerLayer::new(session_store)
         .with_secure(false)
-        .with_expiry(Expiry::OnInactivity(Duration::seconds(300)));
+        .with_expiry(Expiry::OnInactivity(Duration::seconds(10)));
 
     let hc_router = Router::new().route("/health", get(health_check));
     let todo_router = Router::new().route("/one-kit", get(all_todo));
     let handler_router = Router::new().route("/handler", get(handler));
+    let cookie_router = Router::new().route("/cookie", get(get_cookie));
     let get_state_router = Router::new().route("/get-state", get(get_state));
     let auth_login_router = Router::new().route("/login", get(login));
     let auth_user_router = Router::new().route("/user", get(login));
@@ -36,6 +38,7 @@ pub async fn create_app(modules: Arc<Modules>, app_state: Arc<AppState>) {
         .nest("/auth", auth_login_router)
         .nest("/auth", auth_user_router)
         .nest("/api", hc_router)
+        .nest("/api", cookie_router)
         .nest("/api", todo_router)
         .nest("/api", handler_router)
         .nest("/api", get_state_router)
