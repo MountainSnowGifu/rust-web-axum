@@ -1,0 +1,21 @@
+syntax = "proto3";
+package mail;
+
+service MailSender {
+    rpc mail_send (MailRequest) returns (MailReply);
+}
+
+
+message MailRequest {
+   string from = 1;
+   string to = 2;
+   string cc = 3;
+   string bcc = 4;
+   string subject = 5;
+   string content = 6;
+}
+
+message MailReply {
+    bool success = 1;
+    string message = 2;
+}

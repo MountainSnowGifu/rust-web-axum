@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 todos-domain = { path = "../todos-domain" }
+anyhow = "1.0"

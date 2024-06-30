@@ -1,10 +1,14 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Extension};
 use std::sync::Arc;
+use todos_domain::model::mail::RequestMail;
 
 use crate::module::{app_state::AppState, modules::Modules};
 
 pub async fn all_todo(Extension(module): Extension<Arc<Modules>>) -> impl IntoResponse {
     let todo = module.todo_use_case().all().await;
+
+    let mail = RequestMail::default();
+    let _ = module.mail_use_case().mail_send(mail).await;
     tracing::debug!("{:#?}", todo);
     StatusCode::OK
 }
